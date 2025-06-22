@@ -1,0 +1,3 @@
+config.gearhelper.enabled.name=Enabled
+config.gearhelper.undo_max.name=Undo history length
+command.invalid_block=Invalid block ID
