@@ -63,6 +63,14 @@ public class EditHandler {
         return false;
     }
 
+    public boolean rotateCW() {
+        if (clipboard != null) {
+            clipboard = clipboard.rotate90D(false);
+            return true;
+        }
+        return false;
+    }
+
     public int pasteAtPos1(PlayerSelection ps) {
         return pasteAt(ps.getX1(), ps.getY1(), ps.getZ1());
     }
@@ -83,7 +91,7 @@ public class EditHandler {
             //System.out.println(clipboard.tileEntityNBTs.toString());
             BlockSelection pasteArea = clipboard.translateTo(x, y, z);
             addUndo(pasteArea);
-            return clipboard.pasteAtPos(x, y, z);
+            return clipboard.pasteAtPos1(x, y, z);
         }
         return -1;
     }

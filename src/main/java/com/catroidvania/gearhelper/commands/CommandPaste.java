@@ -17,6 +17,10 @@ public class CommandPaste extends Command {
     @Override
     public void onExecute(String[] args, ICommandListener commandExecutor) throws IllegalCmdListenerOperation {
         PlayerSelection ps = PlayerSelectionProvider.getImplementation().getPlayerSelection(commandExecutor.getPlayerEntity());
+        if (GearHelper.editor.clipboard == null) {
+            commandExecutor.log(ChatColors.RED + "Nothing in clipboard");
+            return;
+        }
         GearHelper.editor.clipboard.worldObj = commandExecutor.getWorld();
         int changed = GearHelper.editor.pasteAtPos1(ps);
         if (changed == -1) {
@@ -30,7 +34,7 @@ public class CommandPaste extends Command {
 
     @Override
     public void printHelpInformation(ICommandListener commandExecutor) {
-        commandExecutor.log(ChatColors.YELLOW + "//pasteHere\n\tpaste the copied selection at the players feet");
+        commandExecutor.log(ChatColors.YELLOW + "//pasteHere\n\tpaste the clipboard at the players feet");
     }
 
     @Override

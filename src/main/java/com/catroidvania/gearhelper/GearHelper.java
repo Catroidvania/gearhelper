@@ -26,6 +26,7 @@ public class GearHelper extends Mod {
         registerCommand(new CommandCopy());
         registerCommand(new CommandPaste());
         registerCommand(new CommandWarp());
+        registerCommand(new CommandRotateCW());
     }
 
     public static int blockPos(double pos) {

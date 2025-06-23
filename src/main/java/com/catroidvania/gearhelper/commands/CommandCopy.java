@@ -30,7 +30,7 @@ public class CommandCopy extends Command {
 
     @Override
     public void printHelpInformation(ICommandListener commandExecutor) {
-        commandExecutor.log("//copy\n\tcopy the current selection for pasting");
+        commandExecutor.log("//copy\n\tcopy the current selection to clipboard");
     }
 
     @Override
