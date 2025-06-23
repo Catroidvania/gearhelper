@@ -3,7 +3,6 @@ package com.catroidvania.gearhelper.commands;
 import com.catroidvania.gearhelper.GearHelper;
 import com.fox2code.foxloader.selection.PlayerSelection;
 import com.fox2code.foxloader.selection.PlayerSelectionProvider;
-import net.minecraft.common.block.Blocks;
 import net.minecraft.common.command.Command;
 import net.minecraft.common.command.CommandErrorHandler;
 import net.minecraft.common.command.ICommandListener;
@@ -14,11 +13,10 @@ import net.minecraft.common.command.completion.CommandCompletionChain;
 import net.minecraft.common.command.completion.CommandCompletionRegistry;
 import net.minecraft.common.item.Item;
 import net.minecraft.common.item.Items;
+import net.minecraft.common.item.block.ItemBlock;
 import net.minecraft.common.util.ChatColors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
 
 
 public class CommandFill extends Command {
@@ -53,8 +51,11 @@ public class CommandFill extends Command {
     public void fill(ICommandListener cmdExecutor, PlayerSelection ps, String bidstr, int metadata)  throws IllegalCmdListenerOperation {
         int bid;
         try {
-            bid = Integer.parseInt(bidstr);
-            if (Items.ITEMS_LIST[bid] == null || !Items.ITEMS_LIST[bid].isItemBlock()) throw new NumberFormatException();
+            bid = itemIDtoBlockID(Integer.parseInt(bidstr));
+            if (bid < 0) {
+                cmdExecutor.log(ChatColors.RED + "Invalid block ID " + bidstr);
+                return;
+            }
         } catch (NumberFormatException e) {
             cmdExecutor.log(ChatColors.RED + "Invalid block ID " + bidstr);
             return;
@@ -73,21 +74,34 @@ public class CommandFill extends Command {
             cmdExecutor.sendNoticeToOps("Filled " + itemname + (metadata != 0 ? ":" + metadata : "") + " at " +
                     ps.getMinX() + " " + ps.getMinY() + " " + ps.getMinZ() + " to " +
                     ps.getMaxX() + " " + ps.getMaxY() + " " + ps.getMaxZ());*/
-            if (!GearHelper.editor.fill(ps, bid, metadata)) cmdExecutor.log(ChatColors.RED + "Failed to fill selection");
+            int changed = GearHelper.editor.fill(ps, bid, metadata);
+            if (changed != -1) {
+                cmdExecutor.sendNoticeToOps(cmdExecutor.getUsername() + " filled " + changed + " blocks at "
+                    + ChatColors.RED + ps.getX1() + " " + ChatColors.GREEN + ps.getY1() + " " + ChatColors.AQUA + ps.getZ1() + ChatColors.GRAY);
+            } else {
+                cmdExecutor.log(ChatColors.RED + "Failed to fill selection");
+            }
         } catch (Exception e) {
             cmdExecutor.log(ChatColors.RED + "Failed to fill selection");
             log.error("Exception: ", e);
         }
     }
 
+    public static int itemIDtoBlockID(int itemid) {
+        if (Items.ITEMS_LIST[itemid] instanceof ItemBlock itemBlock) {
+            return itemBlock.blockID;
+        }
+        return -1;
+    }
+
     @Override
     public void printHelpInformation(ICommandListener commandExecutor) {
-        commandExecutor.log("//fill\n\tfill selected region with some block");
+        commandExecutor.log(ChatColors.YELLOW + "//fill\n\tfill selected region with some block");
     }
 
     @Override
     public String commandSyntax() {
-        return ChatColors.YELLOW + "//fill <blockID> <metadata>";
+        return ChatColors.YELLOW + "//fill <block> <metadata>";
     }
 
     @Override

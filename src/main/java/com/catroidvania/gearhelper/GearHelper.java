@@ -20,10 +20,12 @@ public class GearHelper extends Mod {
         registerCommand(new CommandSetblock());
         registerCommand(new CommandSethere());
         registerCommand(new CommandFill());
+        registerCommand(new CommandReplace());
         registerCommand(new CommandUndo());
         registerCommand(new CommandRedo());
         registerCommand(new CommandCopy());
         registerCommand(new CommandPaste());
+        registerCommand(new CommandWarp());
     }
 
     public static int blockPos(double pos) {
@@ -34,7 +36,10 @@ public class GearHelper extends Mod {
         @ConfigEntry(configName = "Enabled", configPath = "enabled")
         public boolean enabled = true;
 
-        @ConfigEntry(configName = "Edit history length", configPath = "undo_max", lowerBounds = 0, upperBounds = 64)
+        @ConfigEntry(configName = "Edit history length", configPath = "undo_max", lowerBounds = 1, upperBounds = 64)
         public int undoMax = 10;
+
+        @ConfigEntry(configName = "Go Max Dist", configPath = "warp_max_dist", lowerBounds = 0, upperBounds = 128)
+        public int warpMax = 32;
     }
 }

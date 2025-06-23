@@ -3,19 +3,17 @@ package com.catroidvania.gearhelper.edit;
 
 import com.fox2code.foxloader.selection.PlayerSelection;
 import com.mojang.nbt.CompoundTag;
-import net.minecraft.common.block.tileentity.TileEntity;
+import net.minecraft.common.block.tileentity.*;
 import net.minecraft.common.world.World;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
 public class BlockSelection {
-    private static final Logger log = LoggerFactory.getLogger(BlockSelection.class);
+    //private static final Logger log = LoggerFactory.getLogger(BlockSelection.class);
     public final PlayerSelection ps;
-    public final World worldObj;
+    public World worldObj;
     public int x1, y1, z1, x2, y2, z2, xd, yd, zd;
-    public final long size;
+    public long size;
     public int[] blockIDs, metadatas;
     public ArrayList<CompoundTag> tileEntityNBTs;
 
@@ -77,6 +75,7 @@ public class BlockSelection {
     }
 
     public void initBlockLists() {
+        if (worldObj == null) return;
         int blockCount = Math.toIntExact(size);
         blockIDs = new int[blockCount];
         metadatas = new int[blockCount];
@@ -122,50 +121,74 @@ public class BlockSelection {
         return newBS;
     }
 
-    public boolean fill(int bid, int metadata) {
-        boolean allFilled = true;
+    public int fill(int bid, int metadata) {
+        int filled = 0;
 
         // java needs do-for confirmed
         for (int y = y1; y != y2+yd; y += yd) {
             for (int z = z1; z != z2+zd; z += zd) {
                 for (int x = x1; x != x2+xd; x += xd) {
-                    if (!worldObj.setBlockAndMetadata(x, y, z, bid, metadata)) allFilled = false;
+                    if (worldObj.setBlockAndMetadata(x, y, z, bid, metadata)) filled++;
                 }
             }
         }
 
-        return allFilled;
+        return filled;
     }
 
-    public boolean paste() {
-        return pasteWithOffset(0 , 0, 0);
-    }
-
-    public boolean pasteAtPos(int xpos, int ypos, int zpos) {
-        return pasteWithOffset(xpos - x1, ypos - y1, zpos - z1);
-    }
-
-    public boolean pasteWithOffset(int xo, int yo, int zo) {
-        boolean allFilled = true;
+    public int replace(int targetid, int metadata1, int replaceid, int metadata2) {
+        int filled = 0;
         int i = 0;
         for (int y = y1; y != y2+yd; y += yd) {
             for (int z = z1; z != z2+zd; z += zd) {
                 for (int x = x1; x != x2+xd; x += xd) {
-                    if (!worldObj.setBlockAndMetadata(xo + x, yo + y, zo + z, blockIDs[i], metadatas[i])) allFilled = false;
+                    if (this.blockIDs[i] == targetid && (metadata1 < 0 || this.metadatas[i] == metadata1)) {
+                        if (worldObj.setBlockAndMetadata(x, y, z, replaceid, Math.max(metadata2, 0))) filled++;
+                    }
+                    i++;
+                }
+            }
+        }
+
+        return filled;
+    }
+
+    public int paste() {
+        return pasteWithOffset(0 , 0, 0);
+    }
+
+    public int pasteAtPos(int xpos, int ypos, int zpos) {
+        return pasteWithOffset(xpos - x1, ypos - y1, zpos - z1);
+    }
+
+    public int pasteWithOffset(int xo, int yo, int zo) {
+        int filled = 0;
+        int i = 0;
+        for (int y = y1; y != y2+yd; y += yd) {
+            for (int z = z1; z != z2+zd; z += zd) {
+                for (int x = x1; x != x2+xd; x += xd) {
+                    if (worldObj.setBlockAndMetadata(xo + x, yo + y, zo + z, blockIDs[i], metadatas[i])) filled++;
                     i++;
                 }
             }
         }
         try {
             for (CompoundTag nbt : tileEntityNBTs) {
-                TileEntity te = new TileEntity();
-                te.readFromNBT(nbt);
-                worldObj.setBlockTileEntity(te.xCoord, te.yCoord, te.zCoord, te);
+                /*for (Tag tag : nbt.getValues()) {
+                    //writeNamedTag((Tag)var2.next(), p0);
+                    System.out.println(tag);
+                }*/
+                TileEntity te = TileEntity.createAndLoadEntity(worldObj, nbt);//tileEntityFromNBT(nbt);
+                if (te != null) {
+                    te.xCoord += xo;
+                    te.yCoord += yo;
+                    te.zCoord += zo;
+                    worldObj.setBlockTileEntity(te.xCoord, te.yCoord, te.zCoord, te);
+                }
             }
         } catch (Exception e) {
-            log.error("Exception: ", e);
-            allFilled = false;
+            //log.error("Exception: ", e);
         }
-        return allFilled;
+        return filled;
     }
 }

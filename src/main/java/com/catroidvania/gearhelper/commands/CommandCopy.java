@@ -24,7 +24,7 @@ public class CommandCopy extends Command {
         if (!GearHelper.editor.copy(ps)) {
             commandExecutor.log(ChatColors.RED + "Failed to copy");
         } else {
-            commandExecutor.log("Copied selection");
+            commandExecutor.log(ChatColors.GREEN + "Copied selection");
         }
     }
 

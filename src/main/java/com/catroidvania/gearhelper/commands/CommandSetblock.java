@@ -6,6 +6,7 @@ import net.minecraft.common.command.*;
 import net.minecraft.common.command.completion.*;
 import net.minecraft.common.item.Item;
 import net.minecraft.common.item.Items;
+import net.minecraft.common.item.block.ItemBlock;
 import net.minecraft.common.util.ChatColors;
 import net.minecraft.common.util.math.Vec3D;
 
@@ -64,7 +65,11 @@ public class CommandSetblock extends Command {
         int bid, x, y, z;
         try {
             bid = Integer.parseInt(bidstr);
-            if (Items.ITEMS_LIST[bid] == null || !Items.ITEMS_LIST[bid].isItemBlock()) throw new NumberFormatException();
+            if (Items.ITEMS_LIST[bid] instanceof ItemBlock itemBlock) {
+                bid = itemBlock.blockID;
+            } else {
+                throw new NumberFormatException();
+            }
             x = blockPos(pos.xCoord);
             y = blockPos(pos.yCoord) - 1;   // place at feet
             z = blockPos(pos.zCoord);
@@ -74,9 +79,7 @@ public class CommandSetblock extends Command {
         }
 
         try {
-            String itemname = bid < 256
-                    ? Blocks.BLOCKS_LIST[bid].getBlockName()
-                    : Items.ITEMS_LIST[bid].getItemName();
+            String itemname = Blocks.BLOCKS_LIST[bid].getBlockName();
             cmdExecutor.getWorld().setBlockAndMetadata(x, y, z, bid, metadata);
             cmdExecutor.sendNoticeToOps("Set block " + bid + (metadata != 0 ? ":" + metadata : "") + " (" + itemname + ") at " + x + " " + y  +" " + z);
         } catch (ArrayIndexOutOfBoundsException var11) {
@@ -90,7 +93,7 @@ public class CommandSetblock extends Command {
 
     @Override
     public String commandSyntax() {
-        return ChatColors.YELLOW + "/setblock <x> <y> <z> <blockID> <metadata>";
+        return ChatColors.YELLOW + "/setblock <x> <y> <z> <block> <metadata>";
     }
 
     @Override

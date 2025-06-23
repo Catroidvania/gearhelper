@@ -15,7 +15,8 @@ public class CommandRedo extends Command {
     @Override
     public void onExecute(String[] args, ICommandListener commandExecutor) throws IllegalCmdListenerOperation {
         if (GearHelper.editor.redo()) {
-            commandExecutor.sendNoticeToOps(commandExecutor.getUsername() + " redid action");
+            //commandExecutor.log(ChatColors.GREEN + " redid action");
+            commandExecutor.sendNoticeToOps( ChatColors.GREEN + commandExecutor.getUsername() + " redid action");
         } else {
             commandExecutor.log(ChatColors.RED + "Failed to redo action");
         }
