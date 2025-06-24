@@ -89,7 +89,7 @@ public class EditHandler {
             System.out.println(Arrays.toString(clipboard.blockIDs));
              */
             //System.out.println(clipboard.tileEntityNBTs.toString());
-            BlockSelection pasteArea = clipboard.translateTo(x, y, z);
+            BlockSelection pasteArea = clipboard.translatePos1To(x, y, z);
             addUndo(pasteArea);
             return clipboard.pasteAtPos1(x, y, z);
         }

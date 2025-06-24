@@ -5,20 +5,19 @@ import com.fox2code.foxloader.selection.PlayerSelection;
 import com.mojang.nbt.CompoundTag;
 import net.minecraft.common.block.Block;
 import net.minecraft.common.block.Blocks;
-import net.minecraft.common.block.children.BlockGearBaseGate;
-import net.minecraft.common.block.children.BlockGearWait;
-import net.minecraft.common.block.children.BlockPistonBase;
+import net.minecraft.common.block.children.*;
 import net.minecraft.common.block.tileentity.*;
 import net.minecraft.common.world.World;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class BlockSelection {
     //private static final Logger log = LoggerFactory.getLogger(BlockSelection.class);
     public final PlayerSelection ps;
     public World worldObj;
-    public int xOriginal, yOriginal, zOriginal, xAnchor, yAnchor, zAnchor, xLength, yLength, zLength;
-    public long size;
+    public int xOriginal, yOriginal, zOriginal, xAnchor, yAnchor, zAnchor, xMax, yMax, zMax;
+    public int size;
     public int[] blockIDs, metadatas;
     public ArrayList<CompoundTag> tileEntityNBTs;
 
@@ -28,13 +27,13 @@ public class BlockSelection {
         this.xOriginal = ps.getMinX();
         this.yOriginal = ps.getMinY();
         this.zOriginal = ps.getMinZ();
-        this.xAnchor = ps.getMinX() - ps.getX1();
-        this.yAnchor = ps.getMinY() - ps.getY1();
-        this.zAnchor = ps.getMinZ() - ps.getZ1();
-        this.xLength = ps.getMaxX() - ps.getMinX() + 1;
-        this.yLength = ps.getMaxY() - ps.getMinY() + 1;
-        this.zLength = ps.getMaxZ() - ps.getMinZ() + 1;
-        this.size = ps.getSelectionSize();
+        this.xAnchor = ps.getX1() - ps.getMinX();
+        this.yAnchor = ps.getY1() - ps.getMinY();
+        this.zAnchor = ps.getZ1() - ps.getMinZ();
+        this.xMax = ps.getMaxX() - ps.getMinX();
+        this.yMax = ps.getMaxY() - ps.getMinY();
+        this.zMax = ps.getMaxZ() - ps.getMinZ();
+        this.size = Math.toIntExact(ps.getSelectionSize());
         if (ps.hasSelection()) initBlockLists();
     }
 
@@ -44,9 +43,12 @@ public class BlockSelection {
         this.xOriginal = bs.xOriginal;
         this.yOriginal = bs.yOriginal;
         this.zOriginal = bs.zOriginal;
-        this.xLength = bs.xLength;
-        this.yLength = bs.yLength;
-        this.zLength = bs.zLength;
+        this.xAnchor = bs.xAnchor;
+        this.yAnchor = bs.yAnchor;
+        this.zAnchor = bs.zAnchor;
+        this.xMax = bs.xMax;
+        this.yMax = bs.yMax;
+        this.zMax = bs.zMax;
         this.size = bs.size;
         if (bs.isValid()) initBlockLists();
     }
@@ -57,15 +59,18 @@ public class BlockSelection {
         this.xOriginal = bs.xOriginal;
         this.yOriginal = bs.yOriginal;
         this.zOriginal = bs.zOriginal;
-        this.xLength = bs.xLength;
-        this.yLength = bs.yLength;
-        this.zLength = bs.zLength;
+        this.xAnchor = bs.xAnchor;
+        this.yAnchor = bs.yAnchor;
+        this.zAnchor = bs.zAnchor;
+        this.xMax = bs.xMax;
+        this.yMax = bs.yMax;
+        this.zMax = bs.zMax;
         this.size = bs.size;
         if (recalcBlocklist && bs.isValid()) {
             initBlockLists();
         } else {
-            this.blockIDs = bs.blockIDs;
-            this.metadatas = bs.metadatas;
+            this.blockIDs = bs.blockIDs.clone();
+            this.metadatas = bs.metadatas.clone();
             this.tileEntityNBTs = new ArrayList<>();
             for (CompoundTag nbt : bs.tileEntityNBTs) {
                 this.tileEntityNBTs.add((CompoundTag)nbt.copy());
@@ -76,16 +81,15 @@ public class BlockSelection {
     public void initBlockLists() {
         if (worldObj == null) return;
         try {
-            int blockCount = Math.toIntExact(size);
-            blockIDs = new int[blockCount];
-            metadatas = new int[blockCount];
+            blockIDs = new int[size];
+            metadatas = new int[size];
             tileEntityNBTs = new ArrayList<>();
 
             // monsterous...
             int i = 0;
-            for (int y = yOriginal; y < yOriginal + yLength; y++) {
-                for (int z = zOriginal; z < zOriginal + zLength; z++) {
-                    for (int x = xOriginal; x < xOriginal + xLength; x++) {
+            for (int y = yOriginal; y <= yOriginal + yMax; y++) {
+                for (int z = zOriginal; z <= zOriginal + zMax; z++) {
+                    for (int x = xOriginal; x <= xOriginal + xMax; x++) {
                         blockIDs[i] = worldObj.getBlockId(x, y, z);
                         metadatas[i] = worldObj.getBlockMetadata(x, y, z);
                         TileEntity te = worldObj.getBlockTileEntity(x, y, z);
@@ -108,7 +112,7 @@ public class BlockSelection {
 
     public boolean isValid() { return this.blockIDs != null; }
 
-    public BlockSelection translateTo(int x, int y, int z) {
+    public BlockSelection translatePos1To(int x, int y, int z) {
         BlockSelection newBS = new BlockSelection(this, false);
         newBS.xOriginal = x + xAnchor;
         newBS.yOriginal = y + yAnchor;
@@ -120,9 +124,9 @@ public class BlockSelection {
         int filled = 0;
 
         // java needs do-for confirmed
-        for (int y = yOriginal; y < yOriginal + yLength; y++) {
-            for (int z = zOriginal; z < zOriginal + zLength; z++) {
-                for (int x = xOriginal; x < xOriginal + xLength; x++) {
+        for (int y = yOriginal; y <= yOriginal + yMax; y++) {
+            for (int z = zOriginal; z <= zOriginal + zMax; z++) {
+                for (int x = xOriginal; x <= xOriginal + xMax; x++) {
                     if (worldObj.setBlockAndMetadata(x, y, z, bid, metadata)) filled++;
                 }
             }
@@ -132,35 +136,56 @@ public class BlockSelection {
     }
 
     public int xyzToIndex(int x, int y, int z) {
-        return Math.abs(x) + Math.abs(z * xLength) + Math.abs(y * xLength * zLength);
+        return x + (z * (this.xMax+1)) + (y * (this.xMax+1) * (this.zMax+1));
+    }
+
+    public static int rotateToPosQuad_impl(int mod, int part, int offset) {
+        int result = mod * part;
+        return mod < 0 ? result + offset : result;
     }
 
     public BlockSelection rotate90D(boolean ccw) {
         BlockSelection newBS = new BlockSelection(this, false);
+
         int xm = ccw ? -1 : 1;
         int zm = -xm;
-        newBS.xLength = zm * this.zLength;
-        newBS.zLength = xm * this.xLength;
-        if (newBS.xLength < 0) newBS.xLength += this.zLength;
-        if (newBS.zLength < 0) newBS.zLength += this.xLength;
 
-        System.out.println("x: " + newBS.xLength + " y: " + newBS.yLength + " z: " + newBS.zLength);
+        newBS.xMax = this.zMax;//rotateToPosQuad_impl(zm, this.zLength, this.zLength);//zm * this.zLength;
+        newBS.zMax = this.xMax;//rotateToPosQuad_impl(xm, this.xMax, this.xMax);//xm * this.xMax;
+        newBS.xAnchor = rotateToPosQuad_impl(zm, this.zAnchor, newBS.xMax);
+        newBS.zAnchor = rotateToPosQuad_impl(xm, this.xAnchor, newBS.zMax);
+
+        //if (newBS.xMax < 0) newBS.xMax += this.zLength;
+        //if (newBS.zLength < 0) newBS.zLength += this.xMax;
+
+        System.out.println("x: " + this.xMax + " y: " + this.yMax + " z: " + this.zMax);
+        System.out.println("xa: " + this.xAnchor + " za: " + this.zAnchor);
+        System.out.println(this.size);
+        System.out.println("x: " + newBS.xMax + " y: " + newBS.yMax + " z: " + newBS.zMax);
+        System.out.println("xa: " + newBS.xAnchor + " za: " + newBS.zAnchor);
         System.out.println(newBS.size);
 
+        //int[][][] rotated = new int[newBS.xMax][newBS.yLength][newBS.zLength];
+
         int i = 0, nx, nz;
-        for (int y = 0; y < yLength; y++) {
-            for (int z = 0; z < zLength; z++) {
-                for (int x = 0; x < xLength; x++) {
+        for (int y = 0; y <= yMax; y++) {
+            for (int z = 0; z <= zMax; z++) {
+                for (int x = 0; x <= xMax; x++) {
                     /*
                     newBS.blockIDs[newBS.xyzToIndex(zm * z, y, xm * x)] = this.blockIDs[i];
                     newBS.metadatas[newBS.xyzToIndex(zm * z, y, xm * x)] =
                             ccw ? rotateBlockMetadataCCW(Blocks.BLOCKS_LIST[this.blockIDs[i]], this.metadatas[i]) : rotateBlockMetadataCW(Blocks.BLOCKS_LIST[this.blockIDs[i]], this.metadatas[i]);
-
                      */
-                    nx = z * zm;
-                    nz = x * xm;
-                    if (nx < 0) nx += this.zLength;
-                    if (nz < 0) nz += this.xLength;
+                    //i = this.xyzToIndex(x, y, z);
+                    nx = rotateToPosQuad_impl(zm, z, newBS.xMax);//z * zm;
+                    nz = rotateToPosQuad_impl(xm, x, newBS.zMax);//x * xm;
+                    System.out.println("xyz: " + x + " " + y + " " + z);
+                    System.out.println("nxz: " + nx + " " + y + " " + nz);
+                    System.out.println(i + " -> " + newBS.xyzToIndex(nx, y, nz));
+                    //if (nx < 0) nx += this.zLength;
+                    //if (nz < 0) nz += this.xMax;
+                    //rotated[nx][y][nz] = this.blockIDs[i];
+
 
                     newBS.blockIDs[newBS.xyzToIndex(nx, y, nz)] = this.blockIDs[i];
                     newBS.metadatas[newBS.xyzToIndex(nx, y, nz)] =
@@ -180,6 +205,9 @@ public class BlockSelection {
             newNBT.setInteger("z", xm * xnbt);
             newBS.tileEntityNBTs.add(newNBT);
         }
+
+        System.out.println(Arrays.toString(this.blockIDs));
+        System.out.println((Arrays.toString(newBS.blockIDs)));
         return newBS;
     }
     
@@ -188,6 +216,8 @@ public class BlockSelection {
             case BlockGearWait bgw -> rotateWaitCW(metadata);
             case BlockGearBaseGate bgbg -> rotateBaseGateCW(metadata);
             case BlockPistonBase bpb -> rotatePistonCW(metadata);
+            case BlockPistonMoving bpm -> rotatePistonCW(metadata); // no sure how it works but ill assume its the same
+            case BlockPistonExtension bpe -> rotatePistonCW(metadata);
             default -> metadata;
         };
     }
@@ -215,9 +245,9 @@ public class BlockSelection {
     public int replace(int targetid, int metadata1, int replaceid, int metadata2) {
         int filled = 0;
         int i = 0;
-        for (int y = yOriginal; y < yOriginal + yLength; y++) {
-            for (int z = zOriginal; z < zOriginal + zLength; z++) {
-                for (int x = xOriginal; x < xOriginal + xLength; x++) {
+        for (int y = yOriginal; y <= yOriginal + yMax; y++) {
+            for (int z = zOriginal; z <= zOriginal + zMax; z++) {
+                for (int x = xOriginal; x <= xOriginal + xMax; x++) {
                     if (this.blockIDs[i] == targetid && (metadata1 < 0 || this.metadatas[i] == metadata1)) {
                         if (worldObj.setBlockAndMetadata(x, y, z, replaceid, Math.max(metadata2, 0))) filled++;
                     }
@@ -240,9 +270,9 @@ public class BlockSelection {
     public int pasteWithOffset(int xpos, int ypos, int zpos) {
         int filled = 0;
         int i = 0;
-        for (int y = 0; y < yLength; y++) {
-            for (int z = 0; z < zLength; z++) {
-                for (int x = 0; x < xLength; x++) {
+        for (int y = 0; y <= yMax; y++) {
+            for (int z = 0; z <= zMax; z++) {
+                for (int x = 0; x <= xMax; x++) {
                     if (worldObj.setBlockAndMetadata(x + xpos, y + ypos, z + zpos, blockIDs[i], metadatas[i])) filled++;
                     i++;
                 }
