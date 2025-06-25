@@ -4,6 +4,7 @@ import com.catroidvania.gearhelper.commands.*;
 import com.catroidvania.gearhelper.edit.EditHandler;
 import com.fox2code.foxloader.config.ConfigEntry;
 import com.fox2code.foxloader.loader.Mod;
+import net.minecraft.common.command.commands.CommandTell;
 import net.minecraft.common.world.gamerules.Gamerule;
 import net.minecraft.common.world.gamerules.Gamerules;
 
@@ -12,6 +13,7 @@ import static com.fox2code.foxloader.registry.CommandRegistry.registerCommand;
 public class GearHelper extends Mod {
     public static final GearHelperConfig CONFIG = new GearHelperConfig();
     public static final Gamerule doDaylightCycle = Gamerules.registerBooleanGamerule("doDaylightCycle", true);
+    public static final Gamerule doWeatherCycle = Gamerules.registerBooleanGamerule("doWeatherCycle", true);
     public static final EditHandler editor = new EditHandler();
 
     @Override
@@ -20,13 +22,18 @@ public class GearHelper extends Mod {
         registerCommand(new CommandSetblock());
         registerCommand(new CommandSethere());
         registerCommand(new CommandFill());
+        registerCommand(new CommandDelete());
         registerCommand(new CommandReplace());
         registerCommand(new CommandUndo());
         registerCommand(new CommandRedo());
         registerCommand(new CommandCopy());
+        registerCommand(new CommandCut());
         registerCommand(new CommandPaste());
         registerCommand(new CommandWarp());
         registerCommand(new CommandRotateCW());
+        registerCommand(new CommandRotateCCW());
+        registerCommand(new CommandWand());
+        registerCommand(new CommandRepeat());
     }
 
     public static int blockPos(double pos) {

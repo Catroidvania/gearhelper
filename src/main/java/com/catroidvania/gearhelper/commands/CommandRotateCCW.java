@@ -6,30 +6,30 @@ import net.minecraft.common.command.ICommandListener;
 import net.minecraft.common.command.IllegalCmdListenerOperation;
 import net.minecraft.common.util.ChatColors;
 
-public class CommandRedo extends Command {
+public class CommandRotateCCW extends Command {
 
-    public CommandRedo() {
-        super("/redo", true, false);
-    }
+    public CommandRotateCCW() { super("/rotccw", true, false); }
 
     @Override
     public void onExecute(String[] args, ICommandListener commandExecutor) throws IllegalCmdListenerOperation {
-        if (GearHelper.editor.redo()) {
-            //commandExecutor.log(ChatColors.GREEN + " redid action");
-            commandExecutor.sendNoticeToOps(commandExecutor.getUsername() + " redid action");
+        if (GearHelper.editor.clipboard == null) {
+            commandExecutor.log(ChatColors.RED + "Nothing copied");
+            return;
+        }
+        if (!GearHelper.editor.rotateCCW()) {
+            commandExecutor.log(ChatColors.RED + "Failed to rotate");
         } else {
-            commandExecutor.log(ChatColors.RED + "Failed to redo action");
+            commandExecutor.log(ChatColors.GREEN + "Rotated counterclockwise");
         }
     }
 
-
     @Override
     public void printHelpInformation(ICommandListener commandExecutor) {
-        commandExecutor.log("//redo\n\tredo the last undone action");
+        commandExecutor.log("//rotccw\n\trotate the current clipboard 90 degrees counterclockwise");
     }
 
     @Override
     public String commandSyntax() {
-        return ChatColors.YELLOW + "//redo";
+        return ChatColors.YELLOW + "//rotccw";
     }
 }

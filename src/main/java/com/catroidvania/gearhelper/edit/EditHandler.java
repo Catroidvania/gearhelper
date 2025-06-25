@@ -2,6 +2,7 @@ package com.catroidvania.gearhelper.edit;
 
 import com.catroidvania.gearhelper.GearHelper;
 import com.fox2code.foxloader.selection.PlayerSelection;
+import net.minecraft.common.util.Facing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,12 +64,62 @@ public class EditHandler {
         return false;
     }
 
+    public int cut(PlayerSelection ps) {
+        if (copy(ps)) {
+            addUndo(clipboard);
+            return clipboard.fill(0, 0);
+        }
+        return -1;
+    }
+
     public boolean rotateCW() {
         if (clipboard != null) {
             clipboard = clipboard.rotate90D(false);
             return true;
         }
         return false;
+    }
+
+    // repeat until good
+    public boolean rotateCCW() {
+        if (clipboard != null) {
+            clipboard = clipboard.rotate90D(true);
+            return true;
+        }
+        return false;
+    }
+
+    public int repeat(PlayerSelection ps, int dir, int repeats) {
+        if (copy(ps)) {
+            int xDir = Facing.offsetXForSide[dir];
+            int zDir = Facing.offsetZForSide[dir];
+            int xMin = ps.getMinX();
+            int xMax = ps.getMaxX();
+            int zMin = ps.getMinZ();
+            int zMax = ps.getMaxZ();
+            int xLen = xMax - xMin + 1;
+            int zLen = zMax - zMin + 1;
+            if (xDir < 0) {
+                xMin -= xLen * repeats;
+            } else if (xDir > 0) {
+                xMax += xLen * repeats;
+            } else if (zDir < 0) {
+                zMin -= zLen * repeats;
+            } else if (zDir > 0) {
+                zMax += zLen * repeats;
+            }
+            BlockSelection tileRegion = new BlockSelection(ps.getSelectionWorld(), xMin, ps.getMinY(), zMin, xMax, ps.getMaxY(), zMax);
+            addUndo(tileRegion);
+            int changed = 0;
+            int x = ps.getX1();
+            int y = ps.getY1();
+            int z = ps.getZ1();
+            for (int i = 1; i <= repeats; i++) {
+                changed += clipboard.pasteAtPos1(x + (i * xLen * xDir), y, z + (i * zLen * zDir));
+            }
+            return changed;
+        }
+        return -1;
     }
 
     public int pasteAtPos1(PlayerSelection ps) {
@@ -84,12 +135,7 @@ public class EditHandler {
 
     public int pasteAt(int x, int y, int z) {
         if (clipboard != null) {
-            /*
-            System.out.println(x + " " + y + " " + z);
-            System.out.println(Arrays.toString(clipboard.blockIDs));
-             */
-            //System.out.println(clipboard.tileEntityNBTs.toString());
-            BlockSelection pasteArea = clipboard.translatePos1To(x, y, z);
+            BlockSelection pasteArea = clipboard.translateToAnchor(x, y, z);
             addUndo(pasteArea);
             return clipboard.pasteAtPos1(x, y, z);
         }

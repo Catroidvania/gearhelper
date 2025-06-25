@@ -15,13 +15,11 @@ import net.minecraft.common.item.Item;
 import net.minecraft.common.item.Items;
 import net.minecraft.common.item.block.ItemBlock;
 import net.minecraft.common.util.ChatColors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class CommandFill extends Command {
 
-    private static final Logger log = LoggerFactory.getLogger(CommandFill.class);
+    //private static final Logger log = LoggerFactory.getLogger(CommandFill.class);
 
     public CommandFill() {
         super("/fill", true, false);
@@ -32,12 +30,11 @@ public class CommandFill extends Command {
         if (args.length >= 2) {
             String block;
             int metadata;
-            PlayerSelection ps;
+            PlayerSelection ps = PlayerSelectionProvider.getImplementation().getPlayerSelection(commandExecutor.getPlayerEntity());;
 
             try {
                 block = Item.getStringItemIDByName(args[1]);
                 metadata = args.length == 3 ? this.tryParse(args[2], 0) : 0;
-                ps = PlayerSelectionProvider.getImplementation().getPlayerSelection(commandExecutor.getPlayerEntity());
             } catch (Exception e) {
                 CommandErrorHandler.commandUsageMessage(this.commandSyntax(), commandExecutor);
                 return;
@@ -83,7 +80,7 @@ public class CommandFill extends Command {
             }
         } catch (Exception e) {
             cmdExecutor.log(ChatColors.RED + "Failed to fill selection");
-            log.error("Exception: ", e);
+            //log.error("Exception: ", e);
         }
     }
 
