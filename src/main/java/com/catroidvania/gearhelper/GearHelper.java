@@ -4,7 +4,8 @@ import com.catroidvania.gearhelper.commands.*;
 import com.catroidvania.gearhelper.edit.EditHandler;
 import com.fox2code.foxloader.config.ConfigEntry;
 import com.fox2code.foxloader.loader.Mod;
-import net.minecraft.common.command.commands.CommandTell;
+import net.minecraft.common.entity.player.EntityPlayer;
+import net.minecraft.common.util.math.MathHelper;
 import net.minecraft.common.world.gamerules.Gamerule;
 import net.minecraft.common.world.gamerules.Gamerules;
 
@@ -34,10 +35,25 @@ public class GearHelper extends Mod {
         registerCommand(new CommandRotateCCW());
         registerCommand(new CommandWand());
         registerCommand(new CommandRepeat());
+        registerCommand(new CommandStack());
+        registerCommand(new CommandNudge());
     }
 
     public static int blockPos(double pos) {
         return (int)Math.floor(pos);
+    }
+
+    public static int getDirectionXY(EntityPlayer player) {
+        // taken from wait block
+        int direction = (MathHelper.floor_double((double)(player.rotationYaw * 4.0F / 360.0F) + (double)0.5F) & 3);
+        if (direction == 1) {
+            direction = 4;
+        } else if (direction == 3) {
+            direction = 5;
+        } else if (direction == 0) {
+            direction = 3;
+        }
+        return direction;
     }
 
     public static class GearHelperConfig {

@@ -7,17 +7,13 @@ import net.minecraft.common.command.Command;
 import net.minecraft.common.command.CommandErrorHandler;
 import net.minecraft.common.command.ICommandListener;
 import net.minecraft.common.command.IllegalCmdListenerOperation;
-import net.minecraft.common.entity.player.EntityPlayer;
 import net.minecraft.common.util.ChatColors;
-
-import net.minecraft.common.util.Facing;
 import net.minecraft.common.util.math.MathHelper;
 
+public class CommandStack extends Command {
 
-public class CommandRepeat extends Command {
-
-    public CommandRepeat() {
-        super("/tile", true, false);
+    public CommandStack() {
+        super("/stack", true, false);
     }
 
     @Override
@@ -32,17 +28,11 @@ public class CommandRepeat extends Command {
             if (args.length == 2) {
                 repeats = this.tryParse(args[1], 1);
             }
-            System.out.println(repeats);
-            int direction = GearHelper.getDirectionXY(commandExecutor.getPlayerEntity());
-            if (repeats < 0) {
-                direction = Facing.oppositeSide[direction];
-                repeats = Math.abs(repeats);
-            }
-            int changed = GearHelper.editor.repeat(ps, direction, repeats);
+            int changed = GearHelper.editor.repeatVertical(ps, repeats);
             if (changed == -1) {
-                commandExecutor.log(ChatColors.RED + "Failed to tile selection");
+                commandExecutor.log(ChatColors.RED + "Failed to stack selection");
             } else {
-                commandExecutor.sendNoticeToOps(commandExecutor.getUsername() + " tiled " + changed + " blocks at "
+                commandExecutor.sendNoticeToOps(commandExecutor.getUsername() + " stacked " + changed + " blocks at "
                         + ChatColors.RED + ps.getX1() + " " + ChatColors.GREEN + ps.getY1() + " " + ChatColors.AQUA + ps.getZ1() + ChatColors.GRAY);
             }
         } else {
@@ -50,14 +40,13 @@ public class CommandRepeat extends Command {
         }
     }
 
-
     @Override
     public void printHelpInformation(ICommandListener commandExecutor) {
-        commandExecutor.log(ChatColors.YELLOW + "//tile\n\tcopy and duplicate the selection horizontally in the look direction");
+        commandExecutor.log(ChatColors.YELLOW + "//stack\n\tcopy and duplicate the selection vertically, negative will stack downwards");
     }
 
     @Override
     public String commandSyntax() {
-        return ChatColors.YELLOW + "//tile <times>";
+        return ChatColors.YELLOW + "//stack <times>";
     }
 }
