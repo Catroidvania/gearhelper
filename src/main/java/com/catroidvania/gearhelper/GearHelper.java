@@ -9,6 +9,8 @@ import net.minecraft.common.util.math.MathHelper;
 import net.minecraft.common.world.gamerules.Gamerule;
 import net.minecraft.common.world.gamerules.Gamerules;
 
+import java.util.Random;
+
 import static com.fox2code.foxloader.registry.CommandRegistry.registerCommand;
 
 public class GearHelper extends Mod {
@@ -16,6 +18,7 @@ public class GearHelper extends Mod {
     public static final Gamerule doDaylightCycle = Gamerules.registerBooleanGamerule("doDaylightCycle", true);
     public static final Gamerule doWeatherCycle = Gamerules.registerBooleanGamerule("doWeatherCycle", true);
     public static final EditHandler editor = new EditHandler();
+    public static final Random rand = new Random();
 
     @Override
     public void onPreInit() {
@@ -30,6 +33,8 @@ public class GearHelper extends Mod {
         registerCommand(new CommandCopy());
         registerCommand(new CommandCut());
         registerCommand(new CommandPaste());
+        registerCommand(new CommandPut());
+        registerCommand(new CommandPutRandomRotation());
         registerCommand(new CommandWarp());
         registerCommand(new CommandRotateCW());
         registerCommand(new CommandRotateCCW());
@@ -38,6 +43,9 @@ public class GearHelper extends Mod {
         registerCommand(new CommandStack());
         registerCommand(new CommandNudge());
         registerCommand(new CommandLift());
+        registerCommand(new CommandBox());
+        // maybe ill just merge with copy
+        registerCommand(new CommandCenterOrigin());
     }
 
     public static int blockPos(double pos) {
@@ -66,5 +74,8 @@ public class GearHelper extends Mod {
 
         @ConfigEntry(configName = "Go Max Dist", configPath = "warp_max_dist", lowerBounds = 0, upperBounds = 128)
         public int warpMax = 32;
+
+        @ConfigEntry(configName = "Paste Air", configPath = "paste_air_replaces")
+        public boolean pasteAir = true;
     }
 }

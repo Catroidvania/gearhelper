@@ -1,8 +1,8 @@
 package com.catroidvania.gearhelper.edit;
 
+import com.catroidvania.gearhelper.GearHelper;
 import com.fox2code.foxloader.selection.PlayerSelection;
 import com.mojang.nbt.CompoundTag;
-import com.mojang.nbt.Tag;
 import net.minecraft.common.block.Block;
 import net.minecraft.common.block.Blocks;
 import net.minecraft.common.block.children.*;
@@ -398,12 +398,24 @@ public class BlockSelection {
         return pasteWithOffset(x - xAnchor, y - yAnchor, z - zAnchor);
     }
 
+    public int pasteAtPos1(int x, int y, int z, boolean pasteAir) {
+        return pasteWithOffset_impl(x - xAnchor, y - yAnchor, z - zAnchor, pasteAir);
+    }
+
     public int pasteWithOffset(int xpos, int ypos, int zpos) {
+        return pasteWithOffset_impl(xpos, ypos, zpos, true);
+    }
+
+    public int pasteWithOffset_impl(int xpos, int ypos, int zpos, boolean pasteAir) {
         int filled = 0;
         int i = 0;
         for (int y = 0; y <= yMax; y++) {
             for (int z = 0; z <= zMax; z++) {
                 for (int x = 0; x <= xMax; x++) {
+                    if (blockIDs[i] == Blocks.AIR.blockID && !pasteAir) {
+                        i++;
+                        continue;
+                    }
                     if (setBlockAndMetadataNoUpdate(x + xpos, y + ypos, z + zpos, blockIDs[i], metadatas[i])) filled++;
                     i++;
                 }

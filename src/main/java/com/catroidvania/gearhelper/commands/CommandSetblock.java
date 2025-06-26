@@ -16,7 +16,7 @@ import static com.catroidvania.gearhelper.GearHelper.blockPos;
 public class CommandSetblock extends Command {
 
     public CommandSetblock() {
-        super("setblock", true, false);
+        super("/setblock", true, false);
     }
 
     public CommandSetblock(String name, boolean opOnly, boolean hidden) {
@@ -93,7 +93,7 @@ public class CommandSetblock extends Command {
 
     @Override
     public String commandSyntax() {
-        return ChatColors.YELLOW + "/setblock <x> <y> <z> <block> <metadata>";
+        return ChatColors.YELLOW + "//setblock <x> <y> <z> <block> <metadata>";
     }
 
     @Override

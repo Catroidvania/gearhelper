@@ -8,5 +8,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(World.class)
 interface UpdateWeatherInvoker {
     @Invoker("updateWeather")
-    public void invokeUpdateWeather();
+    void invokeUpdateWeather();
 }

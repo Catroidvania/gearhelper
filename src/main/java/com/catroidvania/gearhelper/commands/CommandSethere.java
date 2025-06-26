@@ -16,7 +16,7 @@ import net.minecraft.common.util.math.Vec3D;
 public class CommandSethere extends CommandSetblock {
 
     public CommandSethere() {
-        super("sethere", true, false);
+        super("/sethere", true, false);
     }
 
 
@@ -44,7 +44,7 @@ public class CommandSethere extends CommandSetblock {
 
     @Override
     public String commandSyntax() {
-        return ChatColors.YELLOW + "/sethere <block> <metadata>";
+        return ChatColors.YELLOW + "//sethere <block> <metadata>";
     }
 
     @Override

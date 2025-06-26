@@ -22,7 +22,7 @@ public class CommandPaste extends Command {
             return;
         }
         GearHelper.editor.clipboard.worldObj = commandExecutor.getWorld();
-        int changed = GearHelper.editor.pasteAtPos1(ps);
+        int changed = GearHelper.editor.pastePos1(ps);
         if (changed == -1) {
             commandExecutor.log(ChatColors.RED + "Failed to paste selection");
         } else {

@@ -32,8 +32,8 @@ public class CommandWarp extends Command {
             Vec3D maxDest = pos.addVector(dir.xCoord * maxLen, dir.yCoord * maxLen, dir.zCoord * maxLen);
             MovingObjectPosition mop = commandExecutor.getWorld().rayTraceBlocks(pos, maxDest);
             if (mop != null && mop.typeOfHit == EnumMovingObjectType.TILE) {
-                System.out.println(commandExecutor.getPosition());
-                System.out.println(mop.hitVec);
+                //System.out.println(commandExecutor.getPosition());
+                //System.out.println(mop.hitVec);
                 Vec3D dest = new Vec3D(
                         mop.blockX + Facing.offsetXForSide[mop.sideHit],
                         mop.blockY + (Facing.offsetYForSide[mop.sideHit] > 0 ? 2 : -1),

@@ -2,7 +2,6 @@ package com.catroidvania.gearhelper.edit;
 
 import com.catroidvania.gearhelper.GearHelper;
 import com.fox2code.foxloader.selection.PlayerSelection;
-import net.minecraft.common.block.Blocks;
 import net.minecraft.common.util.Facing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +28,16 @@ public class EditHandler {
         }
     }
 
+    public void addUndoAndClearRedo(BlockSelection bs) {
+        undoStack.addFirst(new BlockSelection(bs));
+        this.redoStack.clear();
+        try {
+            if (undoStack.size() > GearHelper.CONFIG.undoMax) undoStack.removeLast();
+        } catch (Exception e) {
+            //log.error("Exception: ", e);
+        }
+    }
+
     public void addRedo(BlockSelection bs) {
         redoStack.addFirst(new BlockSelection(bs));
         try {
@@ -41,7 +50,7 @@ public class EditHandler {
     public int fill(PlayerSelection ps, int bid, int metadata) {
         BlockSelection area = new BlockSelection(ps);
         if (area.isValid()) {
-            addUndo(area);
+            addUndoAndClearRedo(area);
             return area.fill(bid, metadata);
         }
         return -1;
@@ -50,7 +59,7 @@ public class EditHandler {
     public int replace(PlayerSelection ps, int targetid, int metadata1, int replacementid, int metadata2) {
         BlockSelection area = new BlockSelection(ps);
         if (area.isValid()) {
-            addUndo(area);
+            addUndoAndClearRedo(area);
             return area.replace(targetid, metadata1, replacementid, metadata2);
         }
         return -1;
@@ -67,8 +76,30 @@ public class EditHandler {
 
     public int cut(PlayerSelection ps) {
         if (copy(ps)) {
-            addUndo(clipboard);
+            addUndoAndClearRedo(clipboard);
             return clipboard.fill(0, 0);
+        }
+        return -1;
+    }
+
+    public int box(PlayerSelection ps, int bid, int metadata) {
+        BlockSelection area = new BlockSelection(ps);
+        if (area.isValid()) {
+            addUndoAndClearRedo(area);
+            BlockSelection top = new BlockSelection(ps.getSelectionWorld(), ps.getMinX(), ps.getMaxY(), ps.getMinZ(), ps.getMaxX(), ps.getMaxY(), ps.getMaxZ());
+            BlockSelection bot = new BlockSelection(ps.getSelectionWorld(), ps.getMinX(), ps.getMinY(), ps.getMinZ(), ps.getMaxX(), ps.getMinY(), ps.getMaxZ());
+            BlockSelection nor = new BlockSelection(ps.getSelectionWorld(), ps.getMaxX(), ps.getMinY(), ps.getMinZ(), ps.getMaxX(), ps.getMaxY(), ps.getMaxZ());
+            BlockSelection sou = new BlockSelection(ps.getSelectionWorld(), ps.getMinX(), ps.getMinY(), ps.getMinZ(), ps.getMinX(), ps.getMaxY(), ps.getMaxZ());
+            BlockSelection eas = new BlockSelection(ps.getSelectionWorld(), ps.getMinX(), ps.getMinY(), ps.getMaxZ(), ps.getMaxX(), ps.getMaxY(), ps.getMaxZ());
+            BlockSelection wes = new BlockSelection(ps.getSelectionWorld(), ps.getMinX(), ps.getMinY(), ps.getMinZ(), ps.getMaxX(), ps.getMaxY(), ps.getMinZ());
+            int changed = 0;
+            changed += top.fill(bid, metadata);
+            changed += bot.fill(bid, metadata);
+            changed += nor.fill(bid, metadata);
+            changed += sou.fill(bid, metadata);
+            changed += eas.fill(bid, metadata);
+            changed += wes.fill(bid, metadata);
+            return changed;
         }
         return -1;
     }
@@ -101,9 +132,9 @@ public class EditHandler {
             int y = ps.getY1();
             int z = ps.getZ1();
             BlockSelection area = clipboard.merge(clipboard.translateToAnchor(x + (repeats * xLen), y, z + (repeats * zLen)));
-            addUndo(area);
+            addUndoAndClearRedo(area);
             for (int i = 1; i <= repeats; i++) {
-                changed += clipboard.pasteAtPos1(x + (i * xLen), y, z + (i * zLen));
+                changed += clipboard.pasteAtPos1(x + (i * xLen), y, z + (i * zLen), GearHelper.CONFIG.pasteAir);
             }
             return changed;
         }
@@ -119,9 +150,9 @@ public class EditHandler {
             int y = ps.getY1();
             int z = ps.getZ1();
             BlockSelection area = clipboard.merge(clipboard.translateToAnchor(x, y + (Math.abs(repeats) * dir * height), z));
-            addUndo(area);
+            addUndoAndClearRedo(area);
             for (int i = 1; i <= Math.abs(repeats); i++) {
-                changed += clipboard.pasteAtPos1(x, y + (i * dir * height), z);
+                changed += clipboard.pasteAtPos1(x, y + (i * dir * height), z, GearHelper.CONFIG.pasteAir);
             }
             return changed;
         }
@@ -134,22 +165,52 @@ public class EditHandler {
             int yDir = Facing.offsetYForSide[dir];
             int zDir = Facing.offsetZForSide[dir];
             BlockSelection area = clipboard.merge(clipboard.translateToAnchor(ps.getX1() + (xDir * dist), ps.getY1() + (yDir * dist), ps.getZ1() + (zDir * dist)));
-            addUndo(area);
+            addUndoAndClearRedo(area);
             clipboard.fill(0, 0);
-            return clipboard.pasteAtPos1(ps.getX1() + (xDir * dist), ps.getY1() + (yDir * dist), ps.getZ1() + (zDir * dist));
+            return clipboard.pasteAtPos1(ps.getX1() + (xDir * dist), ps.getY1() + (yDir * dist), ps.getZ1() + (zDir * dist), GearHelper.CONFIG.pasteAir);
         }
         return -1;
     }
 
-    public int pasteAtPos1(PlayerSelection ps) {
+    public boolean centerAnchor(boolean centerVertically) {
+        if (clipboard != null) {
+            clipboard.xAnchor = clipboard.xMax / 2;
+            if (centerVertically) {
+                clipboard.yAnchor = clipboard.yMax / 2;
+            } else {
+                clipboard.yAnchor = 0;
+            }
+            clipboard.zAnchor = clipboard.zMax / 2;
+            return true;
+        }
+        return false;
+    }
+
+    public int pastePos1(PlayerSelection ps) {
         return pasteAt(ps.getX1(), ps.getY1(), ps.getZ1());
+    }
+
+    public int pasteWithRandomRotation(int x, int y, int z) {
+        if (clipboard != null) {
+            BlockSelection pasteArea = clipboard.translateToAnchor(x, y, z);
+            int rot = GearHelper.rand.nextInt(0, 4);
+            pasteArea = switch (rot) {
+                case 1 -> pasteArea.rotate90D(false);
+                case 2 -> pasteArea.rotate90D(false).rotate90D(false);
+                case 3 -> pasteArea.rotate90D(true);
+                default -> pasteArea;
+            };
+            addUndoAndClearRedo(pasteArea);
+            return pasteArea.pasteAtPos1(x, y, z, GearHelper.CONFIG.pasteAir);
+        }
+        return -1;
     }
 
     public int pasteAt(int x, int y, int z) {
         if (clipboard != null) {
             BlockSelection pasteArea = clipboard.translateToAnchor(x, y, z);
-            addUndo(pasteArea);
-            return clipboard.pasteAtPos1(x, y, z);
+            addUndoAndClearRedo(pasteArea);
+            return clipboard.pasteAtPos1(x, y, z, GearHelper.CONFIG.pasteAir);
         }
         return -1;
     }

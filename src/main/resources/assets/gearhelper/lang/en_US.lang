@@ -1,3 +1,4 @@
 config.gearhelper.enabled.name=Enabled
 config.gearhelper.undo_max.name=Undo history length
+config.gearhelper.paste_air_replaces.name=Paste Air
 command.invalid_block=Invalid block ID

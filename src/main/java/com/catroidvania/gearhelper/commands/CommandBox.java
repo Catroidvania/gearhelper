@@ -16,13 +16,10 @@ import net.minecraft.common.item.Items;
 import net.minecraft.common.item.block.ItemBlock;
 import net.minecraft.common.util.ChatColors;
 
+public class CommandBox extends Command {
 
-public class CommandFill extends Command {
-
-    //private static final Logger log = LoggerFactory.getLogger(CommandFill.class);
-
-    public CommandFill() {
-        super("/fill", true, false);
+    public CommandBox() {
+        super("/box", true, false);
     }
 
     @Override
@@ -31,7 +28,6 @@ public class CommandFill extends Command {
             String block;
             int metadata;
             PlayerSelection ps = PlayerSelectionProvider.getImplementation().getPlayerSelection(commandExecutor.getPlayerEntity());
-
             try {
                 block = Item.getStringItemIDByName(args[1]);
                 metadata = args.length == 3 ? this.tryParse(args[2], 0) : 0;
@@ -45,7 +41,7 @@ public class CommandFill extends Command {
         }
     }
 
-    public void fill(ICommandListener cmdExecutor, PlayerSelection ps, String bidstr, int metadata)  throws IllegalCmdListenerOperation {
+    public void fill(ICommandListener cmdExecutor, PlayerSelection ps, String bidstr, int metadata) {
         int bid;
         try {
             bid = itemIDtoBlockID(Integer.parseInt(bidstr));
@@ -63,24 +59,12 @@ public class CommandFill extends Command {
             return;
         }
 
-        try {
-            /*
-            String itemname = bid < 256
-                    ? Blocks.BLOCKS_LIST[bid].getBlockName()
-                    : Items.ITEMS_LIST[bid].getItemName();
-            cmdExecutor.sendNoticeToOps("Filled " + itemname + (metadata != 0 ? ":" + metadata : "") + " at " +
-                    ps.getMinX() + " " + ps.getMinY() + " " + ps.getMinZ() + " to " +
-                    ps.getMaxX() + " " + ps.getMaxY() + " " + ps.getMaxZ());*/
-            int changed = GearHelper.editor.fill(ps, bid, metadata);
-            if (changed != -1) {
-                cmdExecutor.sendNoticeToOps(cmdExecutor.getUsername() + " filled " + changed + " blocks at "
+        int changed = GearHelper.editor.box(ps, bid, metadata);
+        if (changed != -1) {
+            cmdExecutor.sendNoticeToOps(cmdExecutor.getUsername() + " placed " + changed + " blocks at "
                     + ChatColors.RED + ps.getX1() + " " + ChatColors.GREEN + ps.getY1() + " " + ChatColors.AQUA + ps.getZ1() + ChatColors.GRAY);
-            } else {
-                cmdExecutor.log(ChatColors.RED + "Failed to fill selection");
-            }
-        } catch (Exception e) {
-            cmdExecutor.log(ChatColors.RED + "Failed to fill selection");
-            //log.error("Exception: ", e);
+        } else {
+            cmdExecutor.log(ChatColors.RED + "Failed to build selection");
         }
     }
 
@@ -93,12 +77,12 @@ public class CommandFill extends Command {
 
     @Override
     public void printHelpInformation(ICommandListener commandExecutor) {
-        commandExecutor.log(ChatColors.YELLOW + "//fill\n\tfill selected region with some block");
+        commandExecutor.log(ChatColors.YELLOW + "//box\n\tbuilds a hollow box");
     }
 
     @Override
     public String commandSyntax() {
-        return ChatColors.YELLOW + "//fill <block> <metadata>";
+        return ChatColors.YELLOW + "//box <block> <metadata>";
     }
 
     @Override
