@@ -37,6 +37,7 @@ public class GearHelper extends Mod {
         registerCommand(new CommandRepeat());
         registerCommand(new CommandStack());
         registerCommand(new CommandNudge());
+        registerCommand(new CommandLift());
     }
 
     public static int blockPos(double pos) {

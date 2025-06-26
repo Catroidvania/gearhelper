@@ -9,11 +9,10 @@ import net.minecraft.common.command.ICommandListener;
 import net.minecraft.common.command.IllegalCmdListenerOperation;
 import net.minecraft.common.util.ChatColors;
 
+public class CommandLift extends Command {
 
-public class CommandNudge extends Command {
-
-    public CommandNudge() {
-        super("/nudge", true, false);
+    public CommandLift() {
+        super("/lift", true, false);
     }
 
     @Override
@@ -28,8 +27,8 @@ public class CommandNudge extends Command {
             if (args.length == 2) {
                 dist = this.tryParse(args[1], 1);
             }
-            int direction = GearHelper.getDirectionXY(commandExecutor.getPlayerEntity());
-            int changed = GearHelper.editor.shift(ps, direction, dist);
+            int direction = dist < 0 ? 0 : 1;
+            int changed = GearHelper.editor.shift(ps, direction, Math.abs(dist));
             if (changed == -1) {
                 commandExecutor.log(ChatColors.RED + "Failed to move selection");
             } else {
@@ -43,11 +42,11 @@ public class CommandNudge extends Command {
 
     @Override
     public void printHelpInformation(ICommandListener commandExecutor) {
-        commandExecutor.log(ChatColors.YELLOW + "//nudge\n\tcut and paste selection in the player horizontal look direction");
+        commandExecutor.log(ChatColors.YELLOW + "//lift\n\tcut and paste selection vertically");
     }
 
     @Override
     public String commandSyntax() {
-        return ChatColors.YELLOW + "//nudge <distance>";
+        return ChatColors.YELLOW + "//lift <distance>";
     }
 }

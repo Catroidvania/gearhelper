@@ -146,6 +146,16 @@ public class BlockSelection {
         return newBS;
     }
 
+    public BlockSelection merge(BlockSelection bs) {
+        int x1 = Math.min(this.xOriginal, bs.xOriginal);
+        int x2 = Math.max(this.xOriginal + this.xMax, bs.xOriginal + bs.xMax);
+        int y1 = Math.min(this.yOriginal, bs.yOriginal);
+        int y2 = Math.max(this.yOriginal + this.yMax, bs.yOriginal + bs.yMax);
+        int z1 = Math.min(this.zOriginal, bs.xOriginal);
+        int z2 = Math.max(this.zOriginal + this.zMax, bs.zOriginal + bs.zMax);
+        return new BlockSelection(this.worldObj, x1, y1, z1, x2, y2, z2);
+    }
+
     public int fill(int bid, int metadata) {
         int filled = 0;
 
