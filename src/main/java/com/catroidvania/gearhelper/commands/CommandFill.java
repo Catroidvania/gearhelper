@@ -19,8 +19,6 @@ import net.minecraft.common.util.ChatColors;
 
 public class CommandFill extends Command {
 
-    //private static final Logger log = LoggerFactory.getLogger(CommandFill.class);
-
     public CommandFill() {
         super("/fill", true, false);
     }

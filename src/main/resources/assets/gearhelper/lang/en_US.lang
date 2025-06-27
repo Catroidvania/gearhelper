@@ -1,4 +1,9 @@
 config.gearhelper.enabled.name=Enabled
 config.gearhelper.undo_max.name=Undo history length
 config.gearhelper.paste_air_replaces.name=Paste Air
+config.gearhelper.auto_center.name=Auto Center
+config.gearhelper.random_rotation.name=Stamp Random Rotation
+config.gearhelper.random_rotation_brush.name=Brush Random Rotation
+config.gearhelper.random_rotation_paint.name=Paint Random Rotation
+config.gearhelper.random_rotation_erase.name=Erase Random Rotation
 command.invalid_block=Invalid block ID

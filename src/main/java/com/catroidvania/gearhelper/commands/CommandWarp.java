@@ -25,7 +25,7 @@ public class CommandWarp extends Command {
     @Override
     public void onExecute(String[] args, ICommandListener commandExecutor) throws IllegalCmdListenerOperation {
         Vec3D pos = commandExecutor.getPosition();
-        Vec3D dir = commandExecutor.getPlayerEntity().getLookVec();
+        Vec3D dir = commandExecutor.getPlayerEntity().getLookVec().normalize();
 
         if (args.length >= 1) {
             int maxLen = args.length == 2 ? this.tryParse(args[1], GearHelper.CONFIG.warpMax) : GearHelper.CONFIG.warpMax;

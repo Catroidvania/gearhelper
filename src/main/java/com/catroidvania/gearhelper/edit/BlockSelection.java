@@ -1,6 +1,5 @@
 package com.catroidvania.gearhelper.edit;
 
-import com.catroidvania.gearhelper.GearHelper;
 import com.fox2code.foxloader.selection.PlayerSelection;
 import com.mojang.nbt.CompoundTag;
 import net.minecraft.common.block.Block;
@@ -12,8 +11,7 @@ import net.minecraft.common.world.World;
 import java.util.ArrayList;
 
 public class BlockSelection {
-    //private static final Logger log = LoggerFactory.getLogger(BlockSelection.class);
-    //public final PlayerSelection ps;
+
     public World worldObj;
     public int xOriginal, yOriginal, zOriginal, xAnchor, yAnchor, zAnchor, xMax, yMax, zMax;
     public int size;
@@ -40,7 +38,7 @@ public class BlockSelection {
         if (ps.hasSelection()) initBlockLists();
     }
 
-    public BlockSelection(World world, int x1, int y1, int z1, int x2, int y2, int z2) {
+    public BlockSelection(World world, int x1, int y1, int z1, int x2, int y2, int z2, boolean leaveBlank) {
         this.worldObj = world;
         this.xOriginal = Math.min(x1, x2);
         this.yOriginal = Math.min(y1, y2);
@@ -52,7 +50,13 @@ public class BlockSelection {
         this.yMax = Math.max(y1, y2) - this.yOriginal;
         this.zMax = Math.max(z1, z2) - this.zOriginal;
         this.size = (Math.abs(x1 - x2) + 1) * (Math.abs(y1 - y2) + 1) * (Math.abs(z1 - z2) + 1);
-        initBlockLists();
+        if (leaveBlank) {
+            this.blockIDs = new int[this.size];
+            this.metadatas = new int[this.size];
+            this.tileEntityNBTs = new ArrayList<>();
+        } else {
+            initBlockLists();
+        }
     }
 
    public BlockSelection(BlockSelection bs) {
@@ -153,7 +157,7 @@ public class BlockSelection {
         int y2 = Math.max(this.yOriginal + this.yMax, bs.yOriginal + bs.yMax);
         int z1 = Math.min(this.zOriginal, bs.xOriginal);
         int z2 = Math.max(this.zOriginal + this.zMax, bs.zOriginal + bs.zMax);
-        return new BlockSelection(this.worldObj, x1, y1, z1, x2, y2, z2);
+        return new BlockSelection(this.worldObj, x1, y1, z1, x2, y2, z2, false);
     }
 
     public int fill(int bid, int metadata) {
@@ -391,58 +395,89 @@ public class BlockSelection {
     }
 
     public int paste() {
-        return pasteWithOffset(xOriginal, yOriginal, zOriginal);
+        return pasteWithOffset_default(xOriginal, yOriginal, zOriginal);
     }
 
-    public int pasteAtPos1(int x, int y, int z) {
-        return pasteWithOffset(x - xAnchor, y - yAnchor, z - zAnchor);
-    }
-
-    public int pasteAtPos1(int x, int y, int z, boolean pasteAir) {
-        return pasteWithOffset_impl(x - xAnchor, y - yAnchor, z - zAnchor, pasteAir);
+    public int pasteAtPos1(int x, int y, int z, PasteMode pm) {
+        return pasteWithOffset_impl(x - xAnchor, y - yAnchor, z - zAnchor, pm);
     }
 
     public int pasteWithOffset(int xpos, int ypos, int zpos) {
-        return pasteWithOffset_impl(xpos, ypos, zpos, true);
+        return pasteWithOffset_default(xpos, ypos, zpos);
     }
 
-    public int pasteWithOffset_impl(int xpos, int ypos, int zpos, boolean pasteAir) {
+    public int pasteWithOffset_default(int xpos, int ypos, int zpos) {
         int filled = 0;
         int i = 0;
         for (int y = 0; y <= yMax; y++) {
             for (int z = 0; z <= zMax; z++) {
                 for (int x = 0; x <= xMax; x++) {
-                    if (blockIDs[i] == Blocks.AIR.blockID && !pasteAir) {
-                        i++;
-                        continue;
-                    }
                     if (setBlockAndMetadataNoUpdate(x + xpos, y + ypos, z + zpos, blockIDs[i], metadatas[i])) filled++;
                     i++;
                 }
             }
         }
 
-        try {
-            for (CompoundTag nbt : tileEntityNBTs) {
-                int x = nbt.getInteger("x") + xpos;
-                int y = nbt.getInteger("y") + ypos;
-                int z = nbt.getInteger("z") + zpos;
-                TileEntity te = worldObj.getBlockTileEntity(x, y, z);
-                if (te != null) {
-                    nbt.setInteger("x", x);
-                    nbt.setInteger("y", y);
-                    nbt.setInteger("z", z);
-                    te.readFromNBT(nbt);
-                    /*
-                    for (Tag tag : nbt.getValues()) {
-                        System.out.println(tag);
-                    }*/
-                }
-
+        for (CompoundTag nbt : tileEntityNBTs) {
+            int x = nbt.getInteger("x") + xpos;
+            int y = nbt.getInteger("y") + ypos;
+            int z = nbt.getInteger("z") + zpos;
+            TileEntity te = worldObj.getBlockTileEntity(x, y, z);
+            if (te != null) {
+                nbt.setInteger("x", x);
+                nbt.setInteger("y", y);
+                nbt.setInteger("z", z);
+                te.readFromNBT(nbt);
             }
-        } catch (Exception e) {
-            System.err.println("Exception: " + e);
         }
+
+        return filled;
+    }
+
+    public int pasteWithOffset_impl(int xpos, int ypos, int zpos, PasteMode pm) {
+        int filled = 0;
+        int i = 0;
+        for (int y = 0; y <= yMax; y++) {
+            for (int z = 0; z <= zMax; z++) {
+                for (int x = 0; x <= xMax; x++) {
+                    int wbid = worldObj.getBlockId(x + xpos, y + ypos, z + zpos);
+                    if (pm == PasteMode.NO_REPLACE) {
+                        if (!(blockIDs[i] == Blocks.AIR.blockID || wbid != Blocks.AIR.blockID)) {
+                            if (setBlockAndMetadataNoUpdate(x + xpos, y + ypos, z + zpos, blockIDs[i], metadatas[i]))
+                                filled++;
+                        }
+                    } else if (pm == PasteMode.PAINT) {
+                        if (blockIDs[i] != Blocks.AIR.blockID && wbid != Blocks.AIR.blockID) {
+                            if (setBlockAndMetadataNoUpdate(x + xpos, y + ypos, z + zpos, blockIDs[i], metadatas[i]))
+                                filled++;
+                        }
+                    } else if (pm == PasteMode.NEGATIVE) {
+                        if (blockIDs[i] != Blocks.AIR.blockID && wbid != Blocks.AIR.blockID) {
+                            if (setBlockAndMetadataNoUpdate(x + xpos, y + ypos, z + zpos, 0, 0))
+                                filled++;
+                        }
+                    } else {
+                        if (setBlockAndMetadataNoUpdate(x + xpos, y + ypos, z + zpos, blockIDs[i], metadatas[i]))
+                            filled++;
+                    }
+                    i++;
+                }
+            }
+        }
+
+        for (CompoundTag nbt : tileEntityNBTs) {
+            int x = nbt.getInteger("x") + xpos;
+            int y = nbt.getInteger("y") + ypos;
+            int z = nbt.getInteger("z") + zpos;
+            TileEntity te = worldObj.getBlockTileEntity(x, y, z);
+            if (te != null) {
+                nbt.setInteger("x", x);
+                nbt.setInteger("y", y);
+                nbt.setInteger("z", z);
+                te.readFromNBT(nbt);
+            }
+        }
+
         return filled;
     }
 

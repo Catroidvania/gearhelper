@@ -28,7 +28,7 @@ public class CommandPut extends Command {
             return;
         }
         Vec3D pos = commandExecutor.getPosition();
-        Vec3D dir = commandExecutor.getPlayerEntity().getLookVec();
+        Vec3D dir = commandExecutor.getPlayerEntity().getLookVec().normalize();
 
         Vec3D maxDest = pos.addVector(dir.xCoord * GearHelper.CONFIG.warpMax, dir.yCoord * GearHelper.CONFIG.warpMax, dir.zCoord * GearHelper.CONFIG.warpMax);
         MovingObjectPosition mop = commandExecutor.getWorld().rayTraceBlocks(pos, maxDest);

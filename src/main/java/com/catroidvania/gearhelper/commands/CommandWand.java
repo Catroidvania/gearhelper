@@ -16,11 +16,13 @@ public class CommandWand extends Command {
     @Override
     public void onExecute(String[] args, ICommandListener commandExecutor) throws IllegalCmdListenerOperation {
         commandExecutor.getPlayerEntity().givePlayerItem(new ItemStack(Items.WOOD_AXE), true);
+        commandExecutor.getPlayerEntity().givePlayerItem(new ItemStack(Items.WOOD_SHOVEL), true);
+
     }
 
     @Override
     public void printHelpInformation(ICommandListener commandExecutor) {
-        commandExecutor.log(ChatColors.YELLOW + "//wand\n\tget a wood axe");
+        commandExecutor.log(ChatColors.YELLOW + "//wand\n\tget a wood axe + shovel");
     }
 
     @Override

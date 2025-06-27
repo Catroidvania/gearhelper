@@ -1,6 +1,7 @@
 package com.catroidvania.gearhelper.commands;
 
 import com.catroidvania.gearhelper.GearHelper;
+import com.catroidvania.gearhelper.edit.PasteMode;
 import net.minecraft.common.command.Command;
 import net.minecraft.common.command.ICommandListener;
 import net.minecraft.common.command.IllegalCmdListenerOperation;
@@ -23,7 +24,7 @@ public class CommandPutRandomRotation extends Command {
             return;
         }
         Vec3D pos = commandExecutor.getPosition();
-        Vec3D dir = commandExecutor.getPlayerEntity().getLookVec();
+        Vec3D dir = commandExecutor.getPlayerEntity().getLookVec().normalize();
 
         Vec3D maxDest = pos.addVector(dir.xCoord * GearHelper.CONFIG.warpMax, dir.yCoord * GearHelper.CONFIG.warpMax, dir.zCoord * GearHelper.CONFIG.warpMax);
         MovingObjectPosition mop = commandExecutor.getWorld().rayTraceBlocks(pos, maxDest);
@@ -31,7 +32,8 @@ public class CommandPutRandomRotation extends Command {
             int changed = GearHelper.editor.pasteWithRandomRotation(
                     mop.blockX + Facing.offsetXForSide[mop.sideHit],
                     mop.blockY + Facing.offsetYForSide[mop.sideHit],
-                    mop.blockZ + Facing.offsetZForSide[mop.sideHit]);
+                    mop.blockZ + Facing.offsetZForSide[mop.sideHit],
+                    GearHelper.CONFIG.pasteAir ? PasteMode.DEFAULT : PasteMode.NO_REPLACE);
             if (changed != -1) {
                 commandExecutor.sendNoticeToOps(commandExecutor.getUsername() + " pasted " + changed + " blocks at "
                         + ChatColors.RED + mop.blockX + " " + ChatColors.GREEN + mop.blockY + " " + ChatColors.AQUA + mop.blockZ + ChatColors.GRAY);
