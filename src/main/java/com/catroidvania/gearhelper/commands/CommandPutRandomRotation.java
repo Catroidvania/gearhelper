@@ -47,11 +47,11 @@ public class CommandPutRandomRotation extends Command {
 
     @Override
     public void printHelpInformation(ICommandListener commandExecutor) {
-        commandExecutor.log(ChatColors.YELLOW + "//prr\n\tpaste clipboard at cursor with a random rotation");
+        commandExecutor.log(ChatColors.YELLOW + "//brush\n\tpaste clipboard at cursor with a random rotation");
     }
 
     @Override
     public String commandSyntax() {
-        return ChatColors.YELLOW + "//prr";
+        return ChatColors.YELLOW + "//brush";
     }
 }

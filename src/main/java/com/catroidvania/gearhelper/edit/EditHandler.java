@@ -174,6 +174,28 @@ public class EditHandler {
         return -1;
     }
 
+    public int line(PlayerSelection ps, int bid, int metadata) {
+        if (ps.hasSelection()) {
+            BlockSelection area = new BlockSelection(ps);
+            addUndoAndClearRedo(area);
+            Vec3D start = new Vec3D(ps.getX1() + 0.5, ps.getY1() + 0.5, ps.getZ1() + 0.5);
+            Vec3D end = new Vec3D(ps.getX2() + 0.5, ps.getY2() + 0.5, ps.getZ2() + 0.5);
+            Vec3D dir = start.subtract(end);
+            Vec3D step = dir.normalize();
+            Vec3D pos;
+            int len = (int)dir.lengthVector();
+            int changed = 0;
+            if (area.setBlockAndMetadataNoUpdate(ps.getX1(), ps.getY1(), ps.getZ1(), bid, metadata)) changed++;
+            if (area.setBlockAndMetadataNoUpdate(ps.getX2(), ps.getY2(), ps.getZ2(), bid, metadata)) changed++;
+            for (int i = 0; i < len; i++) {
+                pos = start.addVector(step.xCoord * i, step.yCoord * i, step.zCoord * i);
+                if (area.setBlockAndMetadataNoUpdate((int)Math.floor(pos.xCoord), (int)Math.floor(pos.yCoord), (int)Math.floor(pos.zCoord), bid, metadata)) changed++;
+            }
+            return changed;
+        }
+        return -1;
+    }
+
     public static BlockSelection generateBrush(World world, BrushShape shape, int size, int bid, int metadata) {
         BlockSelection brush = new BlockSelection(world, 0, 0, 0, size, size, size, true);
         brush.xAnchor = size / 2;

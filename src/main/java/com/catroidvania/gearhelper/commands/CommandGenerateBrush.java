@@ -15,6 +15,7 @@ import net.minecraft.common.item.Item;
 import net.minecraft.common.util.ChatColors;
 import net.minecraft.common.world.World;
 
+
 public class CommandGenerateBrush extends Command {
 
     public CommandGenerateBrush() {

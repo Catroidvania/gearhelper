@@ -6,6 +6,7 @@ import net.minecraft.common.block.Block;
 import net.minecraft.common.block.Blocks;
 import net.minecraft.common.block.children.*;
 import net.minecraft.common.block.tileentity.*;
+import net.minecraft.common.util.math.Vec3D;
 import net.minecraft.common.world.World;
 
 import java.util.ArrayList;
@@ -488,6 +489,6 @@ public class BlockSelection {
         btrue = worldObj.setBlockNoUpdate(x, y, z, bid);
         mtrue = worldObj.setBlockMetadata(x, y, z, metadata);
         //if (metadata != 0) worldObj.markBlockNeedsUpdate(x, y, z);
-        return btrue && mtrue;
+        return btrue || mtrue;
     }
 }
