@@ -196,6 +196,56 @@ public class EditHandler {
         return -1;
     }
 
+    public int ellipsoid(PlayerSelection ps, int bid, int metadata, boolean solid) {
+        if (ps.hasSelection()) {
+            BlockSelection area = new BlockSelection(ps);
+            addUndoAndClearRedo(area);
+            double a = (double)(ps.getMaxX() - ps.getMinX() + 1) / 2;
+            double b = (double)(ps.getMaxY() - ps.getMinY() + 1) / 2;
+            double c = (double)(ps.getMaxZ() - ps.getMinZ() + 1) / 2;
+            Vec3D center = new Vec3D(a, b, c);
+            Vec3D point;
+            int changed = 0;
+            for (int y = 0; y <= area.yMax; y++) {
+                for (int z = 0; z <= area.zMax; z++) {
+                    for (int x = 0; x <= area.xMax; x++) {
+                        point = new Vec3D(x + 0.5, y + 0.5, z + 0.5).subtract(center);
+                        double d = (point.xCoord*point.xCoord)/(a*a) + (point.yCoord*point.yCoord)/(b*b) + (point.zCoord*point.zCoord)/(c*c);
+                        if (d <= 1) {
+                            if (area.setBlockAndMetadataNoUpdate(x + area.xOriginal, y + area.yOriginal, z + area.zOriginal, bid, metadata))
+                                changed++;
+                        }
+                    }
+                }
+            }
+            // basically draw another ellipsoid inside this one
+            if (!solid) {
+                /*
+                a -= 1;
+                b -= 1;
+                c -= 1;
+                */
+                // no divide by 0
+                a -= a > 1 ? 1 : 0;
+                b -= b > 1 ? 1 : 0;
+                c -= c > 1 ? 1 : 0;
+                for (int y = 0; y <= area.yMax; y++) {
+                    for (int z = 0; z <= area.zMax; z++) {
+                        for (int x = 0; x <= area.xMax; x++) {
+                            point = new Vec3D(x + 0.5, y + 0.5, z + 0.5).subtract(center);
+                            double d = (point.xCoord*point.xCoord)/(a*a) + (point.yCoord*point.yCoord)/(b*b) + (point.zCoord*point.zCoord)/(c*c);
+                            if (d <= 1) {
+                                area.setBlockAndMetadataNoUpdate(x + area.xOriginal, y + area.yOriginal, z + area.zOriginal, 0, 0);
+                            }
+                        }
+                    }
+                }
+            }
+            return changed;
+        }
+         return -1;
+    }
+
     public static BlockSelection generateBrush(World world, BrushShape shape, int size, int bid, int metadata) {
         BlockSelection brush = new BlockSelection(world, 0, 0, 0, size, size, size, true);
         brush.xAnchor = size / 2;
@@ -214,7 +264,7 @@ public class EditHandler {
                 for (int z = 0; z <= size; z++) {
                     for (int x = 0; x <= size; x++) {
                         point.setComponents(x + 0.5, y + 0.5, z + 0.5);
-                        if (center.distanceTo(point) < radius) {
+                        if (center.distanceTo(point) <= radius) {
                             brush.blockIDs[brush.xyzToIndex(x, y, z)] = bid;
                             brush.metadatas[brush.xyzToIndex(x, y, z)] = metadata;
                         }
