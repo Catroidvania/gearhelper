@@ -25,6 +25,10 @@ public class CommandEllipsoid extends Command {
     public void onExecute(String[] args, ICommandListener commandExecutor) throws IllegalCmdListenerOperation {
         if (args.length >= 3) {
             PlayerSelection ps = PlayerSelectionProvider.getImplementation().getPlayerSelection(commandExecutor.getPlayerEntity());
+            if (!ps.hasSelection()) {
+                commandExecutor.log(ChatColors.RED + "Invalid selection");
+                return;
+            }
             boolean solid = true;
             if (args[1].startsWith("s")) {
                 solid = true;

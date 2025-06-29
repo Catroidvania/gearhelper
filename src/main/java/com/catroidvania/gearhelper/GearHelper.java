@@ -57,6 +57,7 @@ public class GearHelper extends Mod {
         registerCommand(new CommandUppies());
         registerCommand(new CommandLine());
         registerCommand(new CommandEllipsoid());
+        registerCommand(new CommandTriangle());
     }
 
     public static int blockPos(double pos) {
@@ -79,9 +80,6 @@ public class GearHelper extends Mod {
     public static class GearHelperConfig {
         @ConfigEntry(configName = "Enabled", configPath = "enabled")
         public boolean enabled = true;
-
-        @ConfigEntry(configName = "test", lowerBounds = 0, upperBounds = 1)
-        public double testthresh = 0.8;
 
         @ConfigEntry(configName = "Edit history length", configPath = "undo_max", lowerBounds = 1, upperBounds = 64)
         public int undoMax = 10;

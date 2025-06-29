@@ -180,20 +180,24 @@ public class EditHandler {
             addUndoAndClearRedo(area);
             Vec3D start = new Vec3D(ps.getX1() + 0.5, ps.getY1() + 0.5, ps.getZ1() + 0.5);
             Vec3D end = new Vec3D(ps.getX2() + 0.5, ps.getY2() + 0.5, ps.getZ2() + 0.5);
-            Vec3D dir = start.subtract(end);
-            Vec3D step = dir.normalize();
-            Vec3D pos;
-            int len = (int)dir.lengthVector();
-            int changed = 0;
-            if (area.setBlockAndMetadataNoUpdate(ps.getX1(), ps.getY1(), ps.getZ1(), bid, metadata)) changed++;
-            if (area.setBlockAndMetadataNoUpdate(ps.getX2(), ps.getY2(), ps.getZ2(), bid, metadata)) changed++;
-            for (int i = 0; i < len; i++) {
-                pos = start.addVector(step.xCoord * i, step.yCoord * i, step.zCoord * i);
-                if (area.setBlockAndMetadataNoUpdate((int)Math.floor(pos.xCoord), (int)Math.floor(pos.yCoord), (int)Math.floor(pos.zCoord), bid, metadata)) changed++;
-            }
-            return changed;
+            return line_impl(area, start, end, bid, metadata);
         }
         return -1;
+    }
+
+    public int line_impl(BlockSelection area, Vec3D start, Vec3D end, int bid, int metadata) {
+        Vec3D dir = start.subtract(end);
+        Vec3D step = dir.normalize();
+        Vec3D pos;
+        int len = (int)dir.lengthVector();
+        int changed = 0;
+        if (area.setBlockAndMetadataNoUpdate((int)Math.floor(start.xCoord), (int)Math.floor(start.yCoord), (int)Math.floor(start.zCoord), bid, metadata)) changed++;
+        if (area.setBlockAndMetadataNoUpdate((int)Math.floor(end.xCoord), (int)Math.floor(end.yCoord), (int)Math.floor(end.zCoord), bid, metadata)) changed++;
+        for (int i = 0; i <= len; i++) {
+            pos = start.addVector(step.xCoord * i, step.yCoord * i, step.zCoord * i);
+            if (area.setBlockAndMetadataNoUpdate((int)Math.floor(pos.xCoord), (int)Math.floor(pos.yCoord), (int)Math.floor(pos.zCoord), bid, metadata)) changed++;
+        }
+        return changed;
     }
 
     public int ellipsoid(PlayerSelection ps, int bid, int metadata, boolean solid) {
@@ -244,6 +248,39 @@ public class EditHandler {
             return changed;
         }
          return -1;
+    }
+
+    public int tri(PlayerSelection ps, int x3, int y3, int z3, int bid, int metadata) {
+        if (ps.hasSelection()) {
+            int xMin = Math.min(ps.getMinX(), x3);
+            int yMin = Math.min(ps.getMinY(), y3);
+            int zMin = Math.min(ps.getMinZ(), z3);
+            int xMax = Math.max(ps.getMaxX(), x3);
+            int yMax = Math.max(ps.getMaxY(), y3);
+            int zMax = Math.max(ps.getMaxZ(), z3);
+            BlockSelection area = new BlockSelection(ps.getSelectionWorld(), xMin, yMin, zMin, xMax, yMax, zMax, false);
+            addUndoAndClearRedo(area);
+
+            Vec3D a = new Vec3D(ps.getX1() + 0.5, ps.getY1() + 0.5, ps.getZ1() + 0.5);
+            Vec3D b = new Vec3D(ps.getX2() + 0.5, ps.getY2() + 0.5, ps.getZ2() + 0.5);
+            Vec3D c = new Vec3D(x3 + 0.5, y3 + 0.5, z3 + 0.5);
+
+            Vec3D dir = a.subtract(b);
+            Vec3D step = dir.normalize();
+            Vec3D pos;
+            int len = (int)dir.lengthVector();
+            int changed = 0;
+            if (area.setBlockAndMetadataNoUpdate((int)Math.floor(a.xCoord), (int)Math.floor(a.yCoord), (int)Math.floor(a.zCoord), bid, metadata)) changed++;
+            if (area.setBlockAndMetadataNoUpdate((int)Math.floor(b.xCoord), (int)Math.floor(b.yCoord), (int)Math.floor(b.zCoord), bid, metadata)) changed++;
+            if (area.setBlockAndMetadataNoUpdate((int)Math.floor(c.xCoord), (int)Math.floor(c.yCoord), (int)Math.floor(c.zCoord), bid, metadata)) changed++;
+            for (int i = 0; i <= len; i++) {
+                pos = a.addVector(step.xCoord * i, step.yCoord * i, step.zCoord * i);
+                changed += line_impl(area, pos, c, bid, metadata);
+                if (area.setBlockAndMetadataNoUpdate((int)Math.floor(pos.xCoord), (int)Math.floor(pos.yCoord), (int)Math.floor(pos.zCoord), bid, metadata)) changed++;
+            }
+            return changed;
+        }
+        return -1;
     }
 
     public static BlockSelection generateBrush(World world, BrushShape shape, int size, int bid, int metadata) {
